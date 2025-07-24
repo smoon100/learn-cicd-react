@@ -10,7 +10,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 24.x
+      nodejs: 20
     commands:
       # IMPORTANT: It's generally recommended to specify the Node.js runtime
       # directly in your CodeBuild project configuration (e.g., choose a
