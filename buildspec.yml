@@ -1,0 +1,58 @@
+# buildspec.yml
+version: 0.2
+
+# Define environment variables (optional)
+# env:
+#   variables:
+#    NODE_VERSION: "24" # Specify Node.js version if not set in CodeBuild project config
+    # REACT_APP_API_URL: "https://api.example.com" # Example: pass environment variables to React build
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 24.x
+    commands:
+      # IMPORTANT: It's generally recommended to specify the Node.js runtime
+      # directly in your CodeBuild project configuration (e.g., choose a
+      # managed image like 'aws/codebuild/nodejs:18' or 'aws/codebuild/nodejs:20').
+      # If you do, you might not need to install Node.js/npm via yum here,
+      # but yum commands would still be used for other OS-level packages.
+      # - echo "Updating system packages for Amazon Linux..."
+      # - yum update -y # Use yum for updating package lists on Amazon Linux
+
+      # Install Node.js runtime (if not pre-installed or specified in CodeBuild project config)
+      # - echo "Installing Node.js and npm..."
+      # - yum install -y nodejs npm # Use yum for installing packages on Amazon Linux
+
+      # Install project dependencies
+      # 'npm ci' is recommended for CI/CD as it's faster and uses package-lock.json
+      - echo "Installing project dependencies..."
+      - npm ci
+
+  pre_build:
+    commands:
+      # Run linting checks (optional but recommended for code quality)
+      - echo "Running ESLint checks..."
+      - npm run lint || true # '|| true' makes the step not fail the build if linting has warnings
+
+      # Run unit and integration tests
+      - echo "Running tests..."
+      - npm test -- --watchAll=false # '--watchAll=false' prevents Jest from running in watch mode in CI
+
+  build:
+    commands:
+      # Build the React application for production
+      - echo "Building React application..."
+      - npm run build
+
+artifacts:
+  files:
+    # Specify the files to be uploaded as build artifacts
+    # The 'build' directory is where create-react-app (or similar) outputs the production build
+    - '**/*' # This means all files and subdirectories within the build output directory
+  base-directory: dist # The base directory for the artifacts. CodeBuild will zip this directory's contents.
+  discard-paths: no # Keep the directory structure
+
+cache:
+  paths:
+    - "node_modules/**/*"
